@@ -1,0 +1,91 @@
+@startuml DiagramaClasses
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package modelo {
+
+  interface Locavel {
+    + calcularValorLocacao(horas: int): double
+    + getDescricaoItem(): String
+  }
+
+  abstract class Espaco implements Locavel {
+    - codigo: int
+    - nome: String
+    - capacidade: int
+    # valorHoraBase: double
+    + Espaco(codigo: int, nome: String, capacidade: int, valorHoraBase: double)
+    + {abstract} calcularTarifa(horas: int): double
+    + calcularValorLocacao(horas: int): double
+    + getDescricaoItem(): String
+    + toString(): String
+  }
+
+  class EstacaoTrabalho extends Espaco {
+    - possuiMonitorExtra: boolean
+    + EstacaoTrabalho(codigo: int, nome: String, capacidade: int, valorHoraBase: double, possuiMonitorExtra: boolean)
+    + calcularTarifa(horas: int): double
+  }
+
+  class SalaReuniao extends Espaco {
+    - possuiVideoconferencia: boolean
+    + SalaReuniao(codigo: int, nome: String, capacidade: int, valorHoraBase: double, possuiVideoconferencia: boolean)
+    + calcularTarifa(horas: int): double
+  }
+
+  class Auditorio extends Espaco {
+    - taxaLimpeza: double
+    + Auditorio(codigo: int, nome: String, capacidade: int, valorHoraBase: double, taxaLimpeza: double)
+    + calcularTarifa(horas: int): double
+  }
+
+  class Equipamento implements Locavel {
+    - codigo: int
+    - nome: String
+    - valorHora: double
+    + Equipamento(codigo: int, nome: String, valorHora: double)
+    + calcularValorLocacao(horas: int): double
+    + getDescricaoItem(): String
+    + toString(): String
+  }
+
+  class Cliente {
+    - cpf: String
+    - nome: String
+    - email: String
+    + Cliente(cpf: String, nome: String, email: String)
+    + toString(): String
+  }
+
+  class Reserva {
+    - id: int
+    - data: LocalDate
+    - horaInicio: LocalTime
+    - duracaoHoras: int
+    - cliente: Cliente
+    - itensLocados: List<Locavel>
+    + Reserva(id: int, data: LocalDate, horaInicio: LocalTime, duracaoHoras: int, cliente: Cliente)
+    + adicionarItem(item: Locavel): void
+    + calcularValorTotal(): double
+    + toString(): String
+  }
+}
+
+package servico {
+  class ReservaService {
+    - reservas: List<Reserva>
+    + registrarReserva(reserva: Reserva): void
+    + buscarEspaco(codigo: int): Espaco
+    + buscarEspaco(nome: String): List<Espaco>
+    + listarReservasOrdenadas(): List<Reserva>
+  }
+}
+
+' Relacionamentos obrigatórios (R3) com nome e multiplicidade
+Cliente "1" -- "0..*" Reserva : realiza >
+Reserva "1" o-- "1..*" Locavel : inclui >
+ReservaService ..> Reserva : gerencia >
+ReservaService ..> Locavel : valida disponibilidade >
+
+@enduml
