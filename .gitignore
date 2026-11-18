@@ -1,0 +1,21 @@
+# Arquivos compilados Java
+*.class
+bin/
+out/
+target/
+
+# Pacotes empacotados
+*.jar
+*.war
+
+# Configurações de IDEs e Editores
+.vscode/
+.idea/
+*.iml
+.settings/
+.project
+.classpath
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
