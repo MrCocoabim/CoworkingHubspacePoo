@@ -5,7 +5,7 @@ Projeto prático de software orientado a objetos  - Sobre espaços de coworking 
 
 ## Integrantes
 * Ryan Pereira Campos
-* não lembro o nome completo do pedão. Lets go!!!
+* Pedro gonçalves de oliveira
 
 ## Descrição do Problema
 Espaços de coworking compartilhados enfrentam dificuldades para controlar a disponibilidade horária de diferentes ambientes (estações de trabalho, salas de reunião e auditórios) e equipamentos avulsos (projetores, kits de videoconferência). O controle manual gera choques de horário, falhas no cálculo de tarifas diferenciadas por tipo de espaço e perda de histórico de locações. O sistema **HubSpace** centraliza o cadastro de clientes, espaços e equipamentos, valida conflitos de agenda e calcula automaticamente o valor total das reservas com persistência em arquivo.
