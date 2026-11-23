@@ -3,9 +3,12 @@ skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 skinparam linetype ortho
 
+title HubSpace Coworking - Diagrama de Classes (Etapa 2)
+
 package modelo {
 
   interface Locavel {
+    + getCodigo(): int
     + calcularValorLocacao(horas: int): double
     + getDescricaoItem(): String
   }
@@ -18,6 +21,7 @@ package modelo {
     + Espaco(codigo: int, nome: String, capacidade: int, valorHoraBase: double)
     + {abstract} calcularTarifa(horas: int): double
     + calcularValorLocacao(horas: int): double
+    + getCodigo(): int
     + getDescricaoItem(): String
     + toString(): String
   }
@@ -45,6 +49,7 @@ package modelo {
     - nome: String
     - valorHora: double
     + Equipamento(codigo: int, nome: String, valorHora: double)
+    + getCodigo(): int
     + calcularValorLocacao(horas: int): double
     + getDescricaoItem(): String
     + toString(): String
@@ -65,27 +70,97 @@ package modelo {
     - duracaoHoras: int
     - cliente: Cliente
     - itensLocados: List<Locavel>
+    - pagamento: Pagamento
     + Reserva(id: int, data: LocalDate, horaInicio: LocalTime, duracaoHoras: int, cliente: Cliente)
-    + adicionarItem(item: Locavel): void
+    + adicionarItem(item: Locavel): void throws RegraNegocioException
     + calcularValorTotal(): double
+    + getHoraFim(): LocalTime
+    + itemEmComum(outra: Reserva): Locavel
+    + conflitaCom(outra: Reserva): boolean
+    + registrarPagamento(forma: FormaPagamento, valorPago: double): void throws PagamentoInvalidoException
+    + estaPaga(): boolean
     + toString(): String
+  }
+
+  class Pagamento {
+    - valor: double
+    - forma: FormaPagamento
+    - dataHora: LocalDateTime
+    + Pagamento(valor: double, forma: FormaPagamento)
+    + toString(): String
+  }
+
+  enum FormaPagamento {
+    PIX
+    CARTAO_CREDITO
+    CARTAO_DEBITO
+    DINHEIRO
+  }
+}
+
+package excecao {
+
+  class RegraNegocioException <<checked>> {
+    + RegraNegocioException(mensagem: String)
+  }
+
+  class ConflitoHorarioException extends RegraNegocioException {
+    + ConflitoHorarioException(item: Locavel, data: LocalDate, horaInicio: LocalTime)
+  }
+
+  class PagamentoInvalidoException extends RegraNegocioException {
+    + PagamentoInvalidoException(mensagem: String)
+  }
+
+  class ItemNaoEncontradoException extends RegraNegocioException {
+    + ItemNaoEncontradoException(codigo: int)
   }
 }
 
 package servico {
+
+  class EspacoService {
+    - espacos: List<Espaco>
+    + cadastrar(espaco: Espaco): void throws RegraNegocioException
+    + listar(): List<Espaco>
+    + buscarEspaco(codigo: int): Espaco throws ItemNaoEncontradoException
+    + buscarEspaco(nome: String): List<Espaco>
+    + alterarValorHora(codigo: int, novoValor: double): void throws ItemNaoEncontradoException
+    + remover(codigo: int): void throws ItemNaoEncontradoException
+    + gerarTabelaPrecos(horas: int): String
+  }
+
   class ReservaService {
     - reservas: List<Reserva>
-    + registrarReserva(reserva: Reserva): void
-    + buscarEspaco(codigo: int): Espaco
-    + buscarEspaco(nome: String): List<Espaco>
+    + registrarReserva(reserva: Reserva): void throws RegraNegocioException
+    + cancelarReserva(id: int): void throws RegraNegocioException
+    + pagarReserva(id: int, forma: FormaPagamento, valorPago: double): void throws RegraNegocioException
+    + buscarReserva(id: int): Reserva throws ItemNaoEncontradoException
     + listarReservasOrdenadas(): List<Reserva>
+    + calcularFaturamento(): double
   }
 }
 
-' Relacionamentos obrigatórios (R3) com nome e multiplicidade
+java.lang.Exception <|-- RegraNegocioException
+
+' --- Associacao ---
 Cliente "1" -- "0..*" Reserva : realiza >
-Reserva "1" o-- "1..*" Locavel : inclui >
-ReservaService ..> Reserva : gerencia >
-ReservaService ..> Locavel : valida disponibilidade >
+
+' --- Agregacao: o item existe sem a reserva ---
+Reserva "0..*" o-- "1..*" Locavel : inclui >
+
+' --- Composicao: o pagamento nao existe sem a reserva ---
+Reserva "1" *-- "0..1" Pagamento : quitada por >
+Pagamento "0..*" --> "1" FormaPagamento : usa >
+
+' --- Agregacoes dos servicos ---
+ReservaService "1" o-- "0..*" Reserva : gerencia >
+EspacoService "1" o-- "0..*" Espaco : cataloga >
+
+' --- Dependencias (R3) ---
+ReservaService ..> ConflitoHorarioException : <<throws>>
+ReservaService ..> ItemNaoEncontradoException : <<throws>>
+EspacoService ..> ItemNaoEncontradoException : <<throws>>
+Reserva ..> PagamentoInvalidoException : <<throws>>
 
 @enduml
